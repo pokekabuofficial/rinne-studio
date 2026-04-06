@@ -49,17 +49,31 @@ export async function GET() {
 
     const today = new Date().toISOString().split('T')[0]
 
-    const { error } = await supabase
-      .from('gold_prices')
-      .upsert({
+    // gold_kaitori_prices に品位別で全部保存
+    const rows = [
+      ...Object.entries(goldPrices).map(([grade, price]) => ({
         recorded_at: today,
-        gold_buy: goldPrices['K24'] || 0,
-        gold_sell: goldPrices['K24特定品'] || 0,
-        platinum_buy: platinumPrices['1000(999)'] || platinumPrices['1000'] || 0,
-        platinum_sell: platinumPrices['Pt特定品'] || 0,
-        silver_buy: silverPrice,
-        silver_sell: silverPrice,
-      }, { onConflict: 'recorded_at' })
+        metal: 'gold',
+        grade,
+        price,
+      })),
+      ...Object.entries(platinumPrices).map(([grade, price]) => ({
+        recorded_at: today,
+        metal: 'platinum',
+        grade,
+        price,
+      })),
+      {
+        recorded_at: today,
+        metal: 'silver',
+        grade: '1000',
+        price: silverPrice,
+      },
+    ]
+
+    const { error } = await supabase
+      .from('gold_kaitori_prices')
+      .upsert(rows, { onConflict: 'recorded_at,metal,grade' })
 
     return NextResponse.json({
       success: true,
