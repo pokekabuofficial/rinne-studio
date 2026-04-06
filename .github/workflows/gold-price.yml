@@ -1,0 +1,14 @@
+name: Fetch Gold Price
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call gold price API
+        run: curl https://rinne-studio.vercel.app/api/gold-price
+        
