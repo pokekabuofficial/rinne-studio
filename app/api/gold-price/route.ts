@@ -9,7 +9,6 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    // RE:TANAKAから買取価格を取得
     const res = await fetch('https://gold.tanaka.co.jp/retanaka/price/', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
@@ -26,7 +25,7 @@ export async function GET() {
     let silverPrice = 0
 
     // 金製品テーブル
-    $('#au_price_table tbody tr').each((_, row) => {
+    $('#au_price .price_table tbody tr').each((_, row) => {
       const grade = $(row).find('th').text().trim().replace(/\s+/g, '')
       const value = $(row).find('td').text().trim()
       const num = parseInt(value.replace(/[^0-9]/g, ''))
@@ -34,7 +33,7 @@ export async function GET() {
     })
 
     // プラチナ製品テーブル
-    $('#pt_price_table tbody tr').each((_, row) => {
+    $('#pt_price .price_table tbody tr').each((_, row) => {
       const grade = $(row).find('th').text().trim().replace(/\s+/g, '')
       const value = $(row).find('td').text().trim()
       const num = parseInt(value.replace(/[^0-9]/g, ''))
@@ -42,12 +41,14 @@ export async function GET() {
     })
 
     // 銀
-    const silverText = $('#ag_price_table tbody td').first().text().trim()
-    silverPrice = parseInt(silverText.replace(/[^0-9]/g, ''))
+    $('#ag_price .price_table tbody td').each((_, el) => {
+      const text = $(el).text().trim()
+      const num = parseInt(text.replace(/[^0-9]/g, ''))
+      if (num) silverPrice = num
+    })
 
     const today = new Date().toISOString().split('T')[0]
 
-    // Supabaseに保存
     const { error } = await supabase
       .from('gold_prices')
       .upsert({
